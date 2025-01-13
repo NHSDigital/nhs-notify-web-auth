@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Trigger nhs-notify-internal static environment workflow deployment
+      - name: Trigger nhs-notify-internal workflow deployment
         shell: bash
         run: |
           set -x
@@ -132,3 +132,11 @@ jobs:
             echo "Workflow still running..."
             sleep 20
           done
+      - name: Download terraform outputs from triggered workflow deployment
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-outputs-${{ inputs.targetComponent }}
+      - name: Upload terraform outputs from triggered workflow deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-outputs-${{ inputs.targetComponent }}

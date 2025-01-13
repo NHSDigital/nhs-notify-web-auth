@@ -37,22 +37,6 @@ on:
         type: string
 
 jobs:
-  environment-set-up:
-    name: "Environment set up"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-      - name: "Create infractructure"
-        run: |
-          echo "Creating infractructure..."
-      - name: "Update database"
-        run: |
-          echo "Updating database..."
-      - name: "Deploy application"
-        run: |
-          echo "Deploying application..."
   sandbox-set-up:
     name: Sandbox set up
 
@@ -69,6 +53,29 @@ jobs:
       targetAccountGroup: nhs-notify-iam-dev
       targetComponent: sandbox
       terraformAction: apply
+  environment-set-up:
+    name: "Environment set up"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download sandbox terraform outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-outputs-sandbox
+      - name: Display terraform output
+        run: |
+          cat ./terraform_output.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ nodejs_version }}
+      - name: Generate outputs file
+        run: |
+          root_dir=${GITHUB_WORKSPACE}
+          mv ./terraform_output.json ./sandbox_tf_outputs.json
+          npm run generate-outputs file
   test-contract:
     name: "Contract test"
     runs-on: ubuntu-latest
