@@ -51,6 +51,7 @@ jobs:
       terraformAction: apply
   environment-set-up:
     name: "Environment set up"
+    needs: sandbox-set-up
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -177,27 +178,6 @@ jobs:
       - name: "Save result"
         run: |
           echo "Nothing to save"
-  environment-tear-down:
-    name: "Environment tear down"
-    runs-on: ubuntu-latest
-    needs:
-      [
-        test-accessibility,
-        test-contract,
-        test-integration,
-        test-load,
-        test-security,
-        test-ui-performance,
-        test-ui,
-      ]
-    if: always()
-    timeout-minutes: 5
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-      - name: "Tear down environment"
-        run: |
-          echo "Tearing down environment..."
   sandbox-tear-down:
     name: "Sandbox tear down"
     needs:
