@@ -49,7 +49,7 @@ jobs:
     with:
       releaseVersion: ${{ github.head_ref || github.ref_name }}
       targetWorkflow: dispatch-deploy-dynamic-env.yaml
-      targetEnvironment: ${{ target_environment }}
+      targetEnvironment: ${{ inputs.target_environment }}
       targetAccountGroup: nhs-notify-iam-dev
       targetComponent: sandbox
       terraformAction: apply
@@ -67,10 +67,9 @@ jobs:
       - name: Display terraform output
         run: |
           cat ./terraform_output.json
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ nodejs_version }}
+      - name: "Repo setup"
+        run: |
+          npm ci
       - name: Generate outputs file
         run: |
           root_dir=${GITHUB_WORKSPACE}
