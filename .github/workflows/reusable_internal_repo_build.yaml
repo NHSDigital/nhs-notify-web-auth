@@ -138,11 +138,34 @@ jobs:
             echo "Workflow still running..."
             sleep 20
           done
+
       - name: Download terraform outputs from triggered workflow deployment
         if: inputs.terraformAction == 'apply'
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-outputs-${{ inputs.targetComponent }}
+        run: |
+          echo "Fetching artifact ID for terraform-outputs-${{ inputs.targetComponent }}..."
+          artifact_id=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.PR_TRIGGER_PAT }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/NHSDigital/nhs-notify-internal/actions/runs/$run_id/artifacts" \
+            | jq -r '.artifacts[] | select(.name=="terraform-outputs-${{ inputs.targetComponent }}").id')
+
+          if [ -z "$artifact_id" ]; then
+            echo "Error: Artifact terraform-outputs-${{ inputs.targetComponent }} not found."
+            exit 1
+          fi
+
+          echo "Downloading artifact ID: $artifact_id"
+          curl -L \
+            -H "Authorization: Bearer ${{ secrets.PR_TRIGGER_PAT }}" \
+            -H "Accept: application/vnd.github+json" \
+            -o terraform-output-${{ inputs.targetComponent }}.zip \
+            "https://api.github.com/repos/NHSDigital/nhs-notify-internal/actions/artifacts/$artifact_id/zip"
+
+          echo "Extracting artifact..."
+          unzip terraform-output-${{ inputs.targetComponent }}.zip
+
+          echo "Artifact downloaded and extracted successfully."
+
       - name: Upload terraform outputs from triggered workflow deployment
         if: inputs.terraformAction == 'apply'
         uses: actions/upload-artifact@v4
