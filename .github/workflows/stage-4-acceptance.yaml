@@ -49,6 +49,22 @@ jobs:
       - name: "Deploy application"
         run: |
           echo "Deploying application..."
+  sandbox-set-up:
+    name: Sandbox set up
+
+    permissions:
+      id-token: write
+      contents: read
+
+    uses: ./.github/workflows/reusable_internal_repo_build.yaml
+    secrets: inherit
+    with:
+      releaseVersion: ${{ github.head_ref || github.ref_name }}
+      targetWorkflow: dispatch-deploy-dynamic-env.yaml
+      targetEnvironment: pr${{ github.event.number }}
+      targetAccountGroup: nhs-notify-iam-dev
+      targetComponent: sandbox
+      terraformAction: apply
   test-contract:
     name: "Contract test"
     runs-on: ubuntu-latest
@@ -176,3 +192,30 @@ jobs:
       - name: "Tear down environment"
         run: |
           echo "Tearing down environment..."
+  sandbox-tear-down:
+    name: "Sandbox tear down"
+    needs:
+      [
+        test-accessibility,
+        test-contract,
+        test-integration,
+        test-load,
+        test-security,
+        test-ui-performance,
+        test-ui,
+      ]
+    if: always()
+
+    permissions:
+      id-token: write
+      contents: read
+
+    uses: ./.github/workflows/reusable_internal_repo_build.yaml
+    secrets: inherit
+    with:
+      releaseVersion: ${{ github.head_ref || github.ref_name }}
+      targetWorkflow: dispatch-deploy-dynamic-env.yaml
+      targetEnvironment: pr${{ github.event.number }}
+      targetAccountGroup: nhs-notify-iam-dev
+      targetComponent: sandbox
+      terraformAction: destroy
