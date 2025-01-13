@@ -133,10 +133,12 @@ jobs:
             sleep 20
           done
       - name: Download terraform outputs from triggered workflow deployment
+        if: inputs.terraformAction == 'apply'
         uses: actions/download-artifact@v4
         with:
           name: terraform-outputs-${{ inputs.targetComponent }}
       - name: Upload terraform outputs from triggered workflow deployment
+        if: inputs.terraformAction == 'apply'
         uses: actions/upload-artifact@v4
         with:
           name: terraform-outputs-${{ inputs.targetComponent }}
