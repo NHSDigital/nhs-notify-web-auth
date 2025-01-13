@@ -31,6 +31,10 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
+      target_environment:
+        description: "The environment to deploy to"
+        required: true
+        type: string
 
 jobs:
   environment-set-up:
@@ -61,7 +65,7 @@ jobs:
     with:
       releaseVersion: ${{ github.head_ref || github.ref_name }}
       targetWorkflow: dispatch-deploy-dynamic-env.yaml
-      targetEnvironment: pr${{ github.event.number }}
+      targetEnvironment: ${{ target_environment }}
       targetAccountGroup: nhs-notify-iam-dev
       targetComponent: sandbox
       terraformAction: apply
