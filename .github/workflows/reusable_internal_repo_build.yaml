@@ -96,6 +96,7 @@ jobs:
 
             if [[ -n "$run_id" && "$run_id" != null ]]; then
               echo "Found workflow run with ID: $run_id"
+              echo "run_id=$run_id" >> $GITHUB_ENV
               break
             fi
 
