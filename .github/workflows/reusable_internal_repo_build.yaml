@@ -143,24 +143,24 @@ jobs:
       - name: Download terraform outputs from triggered workflow deployment
         if: inputs.terraformAction == 'apply'
         run: |
-          echo "Fetching artifact ID for terraform-outputs-${{ inputs.targetComponent }}..."
-          artifact_id=$(curl -s \
+          echo "Fetching artifact url for terraform-outputs-${{ inputs.targetComponent }}..."
+          artifact_url=$(curl -s \
             -H "Authorization: Bearer ${{ secrets.PR_TRIGGER_PAT }}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/NHSDigital/nhs-notify-internal/actions/runs/$run_id/artifacts" \
-            | jq -r '.artifacts[] | select(.name=="terraform-output-${{ inputs.targetComponent }}").id')
+            | jq -r '.artifacts[] | select(.name=="terraform-output-${{ inputs.targetComponent }}").archive_download_url')
 
-          if [ -z "$artifact_id" ]; then
+          if [ -z "$artifact_url" ]; then
             echo "Error: Artifact terraform-outputs-${{ inputs.targetComponent }} not found."
             exit 1
           fi
 
-          echo "Downloading artifact ID: $artifact_id"
+          echo "Downloading artifact from $artifact_url"
           curl -L \
             -H "Authorization: Bearer ${{ secrets.PR_TRIGGER_PAT }}" \
             -H "Accept: application/vnd.github+json" \
             -o terraform-output-${{ inputs.targetComponent }}.zip \
-            "https://api.github.com/repos/NHSDigital/nhs-notify-internal/actions/artifacts/$artifact_id/zip"
+            $artifact_url
 
           echo "Extracting artifact..."
           unzip terraform-output-${{ inputs.targetComponent }}.zip
@@ -172,3 +172,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: terraform-outputs-${{ inputs.targetComponent }}
+          with: ./terraform_output.json
