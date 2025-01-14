@@ -177,9 +177,6 @@ jobs:
       - name: "Run accessibility test"
         run: |
           make test-accessibility
-      - name: "Save result"
-        run: |
-          echo "Nothing to save"
       - name: Archive accessibility results
         uses: actions/upload-artifact@v4
         with:
