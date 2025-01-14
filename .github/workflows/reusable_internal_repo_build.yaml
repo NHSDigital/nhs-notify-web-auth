@@ -51,8 +51,6 @@ jobs:
       - name: Trigger nhs-notify-internal workflow deployment
         shell: bash
         run: |
-          set -x
-
           DISPATCH_EVENT=$(jq -ncM \
             --arg infraRepoName ${{ inputs.infraRepoName }} \
             --arg releaseVersion ${{ inputs.releaseVersion }} \
@@ -82,7 +80,7 @@ jobs:
             "https://api.github.com/repos/NHSDigital/nhs-notify-internal/actions/workflows/${{ inputs.targetWorkflow }}/dispatches" \
             -d "${DISPATCH_EVENT}"
 
-          echo "Workflow triggered successfully. HTTP response. Waiting for the workflow to complete.."
+          echo "Workflow triggered. Waiting for the workflow to complete.."
 
           # Poll GitHub API to check the workflow status
           workflow_run_url=""
@@ -118,7 +116,7 @@ jobs:
           # Wait for workflow completion
           while true; do
             sleep 10
-            response=$(curl -s \
+            response=$(curl -s -L \
               -H "Authorization: Bearer ${{ secrets.PR_TRIGGER_PAT }}" \
               -H "Accept: application/vnd.github+json" \
               $workflow_run_url)

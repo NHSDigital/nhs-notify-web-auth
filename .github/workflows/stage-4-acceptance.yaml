@@ -72,6 +72,11 @@ jobs:
           root_dir=${GITHUB_WORKSPACE}
           mv ./terraform_output.json ./sandbox_tf_outputs.json
           npm run generate-outputs file
+      - name: Upload sandbox amplify_outputs.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: amplify_outputs.json
+          path: ./amplify_outputs.json
   test-contract:
     name: "Contract test"
     runs-on: ubuntu-latest
@@ -108,12 +113,28 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: amplify_outputs.json
+      - name: "Repo setup"
+        run: |
+          npm ci
+      - name: Install playwright browsers
+        run: npx playwright install --with-deps
+      - name: "Run UI test"
+        run: |
+          cd tests/test-team
+          npm run test:local-ui
+
+
       - name: "Run UI test"
         run: |
           make test-ui
-      - name: "Save result"
-        run: |
-          echo "Nothing to save"
+      - name: Archive UI test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: UI test report
+          path: "tests/test-team/playwright-report"
   test-ui-performance:
     name: "UI performance test"
     runs-on: ubuntu-latest
