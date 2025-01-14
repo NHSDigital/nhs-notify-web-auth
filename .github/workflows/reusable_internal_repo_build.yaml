@@ -97,11 +97,12 @@ jobs:
                   --arg targetAccountGroup "${{ inputs.targetAccountGroup }}" \
                   --arg targetComponent "${{ inputs.targetComponent }}" \
                   --arg terraformAction "${{ inputs.terraformAction }}" \
-                '.workflow_runs[] 
-                  | select(.name | contains($targetEnvironment) and 
-                                    contains($targetAccountGroup) and 
-                                    contains($targetComponent) and 
-                                    contains($terraformAction)) 
+                '.workflow_runs[]
+                  | select(.name
+                  | contains($targetEnvironment) and
+                    contains($targetAccountGroup) and
+                    contains($targetComponent) and
+                    contains($terraformAction))
                   | .url')
 
             if [[ -n "$workflow_run_url" && "$workflow_run_url" != null ]]; then
