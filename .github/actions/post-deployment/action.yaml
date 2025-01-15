@@ -29,6 +29,7 @@ runs:
       shell: bash
       run: |
         echo "Hello from WEBAUTH 1"
+        cat terraform_output.json | jq
         npm ci
 
     - name: Generate outputs file
