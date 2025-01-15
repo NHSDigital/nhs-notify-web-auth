@@ -25,6 +25,24 @@ runs:
       with:
         name: terraform-output-${{ inputs.targetComponent }}
 
+    - name: "Repo setup"
+      shell: bash
+      run: |
+        npm ci
+
+    - name: Generate outputs file
+      shell: bash
+      run: |
+        root_dir=${GITHUB_WORKSPACE}
+        mv ./terraform_output.json ./sandbox_tf_outputs.json
+        npm run generate-outputs file
+
+    - name: Upload sandbox amplify_outputs.json
+      uses: actions/upload-artifact@v4
+      with:
+        name: amplify_outputs.json
+        path: ./amplify_outputs.json
+
     - name: Extract configuration details
       shell: bash
       run: |
