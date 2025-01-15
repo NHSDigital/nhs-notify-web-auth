@@ -33,18 +33,28 @@ on:
         type: string
 
 jobs:
+  # sandbox-set-up:
+  #   name: Sandbox set up
+
+  #   permissions:
+  #     id-token: write
+  #     contents: read
+
+  #   uses: ./.github/workflows/reusable_internal_repo_build.yaml
+  #   secrets: inherit
+  #   with:
+  #     releaseVersion: ${{ github.head_ref || github.ref_name }}
+  #     targetWorkflow: dispatch-deploy-dynamic-env.yaml
+  #     targetEnvironment: pr${{ github.event.number }}
+  #     targetAccountGroup: nhs-notify-iam-dev
+  #     targetComponent: sandbox
+  #     terraformAction: apply
   sandbox-set-up:
     name: Sandbox set up
-
-    permissions:
-      id-token: write
-      contents: read
-
-    uses: ./.github/workflows/reusable_internal_repo_build.yaml
-    secrets: inherit
+    uses: ./.github/workflows/dispatch-deploy-dynamic-env.yaml
     with:
+      infraRepoName: nhs-notify-iam-webauth
       releaseVersion: ${{ github.head_ref || github.ref_name }}
-      targetWorkflow: dispatch-deploy-dynamic-env.yaml
       targetEnvironment: pr${{ github.event.number }}
       targetAccountGroup: nhs-notify-iam-dev
       targetComponent: sandbox
@@ -199,6 +209,33 @@ jobs:
       - name: "Save result"
         run: |
           echo "Nothing to save"
+  # sandbox-tear-down:
+  #   name: "Sandbox tear down"
+  #   needs:
+  #     [
+  #       test-accessibility,
+  #       test-contract,
+  #       test-integration,
+  #       test-load,
+  #       test-security,
+  #       test-ui-performance,
+  #       test-ui,
+  #     ]
+  #   if: always()
+
+  #   permissions:
+  #     id-token: write
+  #     contents: read
+
+  #   uses: ./.github/workflows/reusable_internal_repo_build.yaml
+  #   secrets: inherit
+  #   with:
+  #     releaseVersion: ${{ github.head_ref || github.ref_name }}
+  #     targetWorkflow: dispatch-deploy-dynamic-env.yaml
+  #     targetEnvironment: pr${{ github.event.number }}
+  #     targetAccountGroup: nhs-notify-iam-dev
+  #     targetComponent: sandbox
+  #     terraformAction: destroy
   sandbox-tear-down:
     name: "Sandbox tear down"
     needs:
@@ -220,8 +257,8 @@ jobs:
     uses: ./.github/workflows/reusable_internal_repo_build.yaml
     secrets: inherit
     with:
+      infraRepoName: nhs-notify-iam-webauth
       releaseVersion: ${{ github.head_ref || github.ref_name }}
-      targetWorkflow: dispatch-deploy-dynamic-env.yaml
       targetEnvironment: pr${{ github.event.number }}
       targetAccountGroup: nhs-notify-iam-dev
       targetComponent: sandbox
