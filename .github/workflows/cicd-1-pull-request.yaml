@@ -103,16 +103,59 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
     secrets: inherit
+  sandbox-set-up:
+    name: Sandbox set up
+
+    permissions:
+      id-token: write
+      contents: read
+
+    uses: ./.github/workflows/reusable_internal_repo_build.yaml
+    secrets: inherit
+    with:
+      releaseVersion: ${{ github.head_ref || github.ref_name }}
+      targetWorkflow: dispatch-deploy-dynamic-env.yaml
+      targetEnvironment: pr${{ github.event.number }}
+      targetAccountGroup: nhs-notify-iam-dev
+      targetComponent: sandbox
+      terraformAction: apply
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     name: "Acceptance stage"
     needs: [metadata, build-stage]
     uses: ./.github/workflows/stage-4-acceptance.yaml
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      version: "${{ needs.metadata.outputs.version }}"
+    # with:
+    #   build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+    #   build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+    #   build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+    #   nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+    #   python_version: "${{ needs.metadata.outputs.python_version }}"
+    #   terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+    #   version: "${{ needs.metadata.outputs.version }}"
     secrets: inherit
+  sandbox-tear-down:
+    name: "Sandbox tear down"
+    needs:
+      [
+        test-accessibility,
+        test-contract,
+        test-integration,
+        test-load,
+        test-security,
+        test-ui-performance,
+        test-ui,
+      ]
+    if: always()
+
+    permissions:
+      id-token: write
+      contents: read
+
+    uses: ./.github/workflows/reusable_internal_repo_build.yaml
+    secrets: inherit
+    with:
+      releaseVersion: ${{ github.head_ref || github.ref_name }}
+      targetWorkflow: dispatch-deploy-dynamic-env.yaml
+      targetEnvironment: pr${{ github.event.number }}
+      targetAccountGroup: nhs-notify-iam-dev
+      targetComponent: sandbox
+      terraformAction: destroy

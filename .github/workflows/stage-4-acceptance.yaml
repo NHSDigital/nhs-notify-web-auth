@@ -2,56 +2,10 @@ name: "Acceptance stage"
 
 on:
   workflow_call:
-    inputs:
-      build_datetime:
-        description: "Build datetime, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
-      build_timestamp:
-        description: "Build timestamp, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
-      build_epoch:
-        description: "Build epoch, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
-      nodejs_version:
-        description: "Node.js version, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
-      python_version:
-        description: "Python version, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
-      terraform_version:
-        description: "Terraform version, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
-      version:
-        description: "Version of the software, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
 
 jobs:
-  sandbox-set-up:
-    name: Sandbox set up
-
-    permissions:
-      id-token: write
-      contents: read
-
-    uses: ./.github/workflows/reusable_internal_repo_build.yaml
-    secrets: inherit
-    with:
-      releaseVersion: ${{ github.head_ref || github.ref_name }}
-      targetWorkflow: dispatch-deploy-dynamic-env.yaml
-      targetEnvironment: pr${{ github.event.number }}
-      targetAccountGroup: nhs-notify-iam-dev
-      targetComponent: sandbox
-      terraformAction: apply
   environment-set-up:
     name: "Environment set up"
-    needs: sandbox-set-up
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -199,30 +153,3 @@ jobs:
       - name: "Save result"
         run: |
           echo "Nothing to save"
-  sandbox-tear-down:
-    name: "Sandbox tear down"
-    needs:
-      [
-        test-accessibility,
-        test-contract,
-        test-integration,
-        test-load,
-        test-security,
-        test-ui-performance,
-        test-ui,
-      ]
-    if: always()
-
-    permissions:
-      id-token: write
-      contents: read
-
-    uses: ./.github/workflows/reusable_internal_repo_build.yaml
-    secrets: inherit
-    with:
-      releaseVersion: ${{ github.head_ref || github.ref_name }}
-      targetWorkflow: dispatch-deploy-dynamic-env.yaml
-      targetEnvironment: pr${{ github.event.number }}
-      targetAccountGroup: nhs-notify-iam-dev
-      targetComponent: sandbox
-      terraformAction: destroy
