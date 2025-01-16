@@ -46,19 +46,9 @@ runs:
     - name: Extract configuration details
       shell: bash
       run: |
-        # Extract config from terraform outputs
-        ls
         cat amplify_outputs.json | jq
-        echo COGNITO_USER_POOL_CLIENT_ID=$(cat amplify_outputs.json | jq -r .cognito_user_pool_client_id.value) >> $GITHUB_ENV
-        echo COGNITO_USER_POOL_ID=$(cat amplify_outputs.json | jq -r .cognito_user_pool_id.value) >> $GITHUB_ENV
-
-    - name: Check configuration
-      shell: bash
-      run: |
-        if [[ "DOMAIN" == "null" ]]; then
-          echo "::warning::Deployment output not available to trigger post-deployment workflow."
-          exit 1
-        fi
+        echo USER_POOL_CLIENT_ID=$(cat amplify_outputs.json | jq -r .auth.user_pool_client_id.value) >> $GITHUB_ENV
+        echo USER_POOL_ID=$(cat amplify_outputs.json | jq -r .auth.user_pool_id.value) >> $GITHUB_ENV
 
     - name: Install playwright browsers
       shell: bash
@@ -74,7 +64,7 @@ runs:
       shell: bash
       run: |
         make test-ui
-        
+
     - name: Archive UI test results
       uses: actions/upload-artifact@v4
       with:
