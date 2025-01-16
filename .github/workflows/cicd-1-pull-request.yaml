@@ -105,7 +105,7 @@ jobs:
     secrets: inherit
   sandbox-set-up:
     name: Sandbox set up
-    needs: [metadata, test-stage]
+    needs: [metadata, build-stage]
 
     permissions:
       id-token: write
