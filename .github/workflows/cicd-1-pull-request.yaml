@@ -121,17 +121,20 @@ jobs:
       terraformAction: apply
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     name: "Acceptance stage"
-    needs: [metadata, build-stage]
-    uses: ./.github/workflows/stage-4-acceptance.yaml
-    # with:
-    #   build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-    #   build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-    #   build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-    #   nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-    #   python_version: "${{ needs.metadata.outputs.python_version }}"
-    #   terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-    #   version: "${{ needs.metadata.outputs.version }}"
+
+    permissions:
+      id-token: write
+      contents: read
+
+    uses: ./.github/workflows/reusable_internal_repo_build.yaml
     secrets: inherit
+    with:
+      releaseVersion: ${{ github.head_ref || github.ref_name }}
+      targetWorkflow: temp-trigger-dispatch-postdeploy-dynamic-env-iam
+      targetEnvironment: pr${{ github.event.number }}
+      targetAccountGroup: nhs-notify-iam-dev
+      targetComponent: sandbox
+      terraformAction: apply
   sandbox-tear-down:
     name: "Sandbox tear down"
     needs:
