@@ -24,7 +24,6 @@ runs:
       uses: actions/download-artifact@v4
       with:
         name: terraform-output-${{ inputs.targetComponent }}
-
     - name: "Repo setup"
       shell: bash
       run: |
@@ -37,11 +36,11 @@ runs:
         mv ./terraform_output.json ./sandbox_tf_outputs.json
         npm run generate-outputs file
 
-    - name: Upload sandbox amplify_outputs.json
-      uses: actions/upload-artifact@v4
-      with:
-        name: amplify_outputs.json
-        path: ./amplify_outputs.json
+    # - name: Upload sandbox amplify_outputs.json
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: amplify_outputs.json
+    #     path: ./amplify_outputs.json
 
     - name: Extract configuration details
       shell: bash
@@ -49,19 +48,10 @@ runs:
         cat amplify_outputs.json | jq
         echo USER_POOL_CLIENT_ID=$(cat amplify_outputs.json | jq -r .auth.user_pool_client_id.value) >> $GITHUB_ENV
         echo USER_POOL_ID=$(cat amplify_outputs.json | jq -r .auth.user_pool_id.value) >> $GITHUB_ENV
-        echo AWS_REGION=$(cat amplify_outputs.json | jq -r .auth.aws_region.value) >> $GITHUB_ENV
 
     - name: Install playwright browsers
       shell: bash
       run: npx playwright install --with-deps
-
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ASSUME_ROLE_NAME }}
-        role-session-name: ${{ github.run_id }}
-        aws-region: ${{ env.AWS_REGION }}
-        role-skip-session-tagging: true
 
     - name: "Run UI test"
       shell: bash
