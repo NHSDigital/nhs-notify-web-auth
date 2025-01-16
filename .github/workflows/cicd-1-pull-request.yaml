@@ -137,16 +137,7 @@ jobs:
       terraformAction: apply
   sandbox-tear-down:
     name: "Sandbox tear down"
-    needs:
-      [
-        test-accessibility,
-        test-contract,
-        test-integration,
-        test-load,
-        test-security,
-        test-ui-performance,
-        test-ui,
-      ]
+    needs: acceptance-stage
     if: always()
 
     permissions:
