@@ -3,11 +3,8 @@ name: "CI/CD pull request"
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
 on:
-  push:
-    branches:
-      - "**"
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
 
 jobs:
   metadata:
@@ -106,16 +103,55 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
     secrets: inherit
+  sandbox-set-up:
+    name: Sandbox set up
+    needs: [metadata, build-stage]
+
+    permissions:
+      id-token: write
+      contents: read
+
+    uses: ./.github/workflows/reusable_internal_repo_build.yaml
+    secrets: inherit
+    with:
+      releaseVersion: ${{ github.head_ref || github.ref_name }}
+      targetWorkflow: dispatch-deploy-dynamic-env.yaml
+      targetEnvironment: pr${{ github.event.number }}
+      targetAccountGroup: nhs-notify-iam-dev
+      targetComponent: sandbox
+      terraformAction: apply
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     name: "Acceptance stage"
-    needs: [metadata, build-stage]
-    uses: ./.github/workflows/stage-4-acceptance.yaml
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      version: "${{ needs.metadata.outputs.version }}"
+    needs: sandbox-set-up
+
+    permissions:
+      id-token: write
+      contents: read
+
+    uses: ./.github/workflows/reusable_internal_repo_build.yaml
     secrets: inherit
+    with:
+      releaseVersion: ${{ github.head_ref || github.ref_name }}
+      targetWorkflow: temp-trigger-dispatch-postdeploy-dynamic-env-iam
+      targetEnvironment: pr${{ github.event.number }}
+      targetAccountGroup: nhs-notify-iam-dev
+      targetComponent: sandbox
+      terraformAction: apply
+  sandbox-tear-down:
+    name: "Sandbox tear down"
+    needs: acceptance-stage
+    if: always()
+
+    permissions:
+      id-token: write
+      contents: read
+
+    uses: ./.github/workflows/reusable_internal_repo_build.yaml
+    secrets: inherit
+    with:
+      releaseVersion: ${{ github.head_ref || github.ref_name }}
+      targetWorkflow: dispatch-deploy-dynamic-env.yaml
+      targetEnvironment: pr${{ github.event.number }}
+      targetAccountGroup: nhs-notify-iam-dev
+      targetComponent: sandbox
+      terraformAction: destroy

@@ -24,29 +24,42 @@ runs:
       uses: actions/download-artifact@v4
       with:
         name: terraform-output-${{ inputs.targetComponent }}
+    - name: "Repo setup"
+      shell: bash
+      run: |
+        npm ci
+
+    - name: Generate outputs file
+      shell: bash
+      run: |
+        root_dir=${GITHUB_WORKSPACE}
+        mv ./terraform_output.json ./sandbox_tf_outputs.json
+        npm run generate-outputs sandbox-output
 
     - name: Extract configuration details
       shell: bash
       run: |
-        # Extract config from terraform outputs
-        ls
-        cat terraform_output.json | jq
-        echo APP=$(cat terraform_output.json | jq -r .amplify.value.id) >> $GITHUB_ENV
-        echo DOMAIN=$(cat terraform_output.json | jq -r .amplify.value.domain_name) >> $GITHUB_ENV
-        echo AWS_REGION=$(cat terraform_output.json | jq -r .deployment.value.aws_region) >> $GITHUB_ENV
-        echo AWS_ACCOUNT_ID=$(cat terraform_output.json | jq -r .deployment.value.aws_account_id) >> $GITHUB_ENV
+        cat amplify_outputs.json | jq
+        # echo USER_POOL_CLIENT_ID=$(cat amplify_outputs.json | jq -r .auth.user_pool_client_id.value) >> $GITHUB_ENV
+        # echo USER_POOL_ID=$(cat amplify_outputs.json | jq -r .auth.user_pool_id.value) >> $GITHUB_ENV
 
-    - name: Check configuration
+    - name: Install playwright browsers
+      shell: bash
+      run: npx playwright install --with-deps
+
+    - name: "Run UI test"
       shell: bash
       run: |
-        if [[ "DOMAIN" == "null" ]]; then
-          echo "::warning::Deployment output not available to trigger post-deployment workflow."
-          exit 1
-        fi
+        cd tests/test-team
+        npm run test:local-ui
 
-    - name: Post-deployment
+    - name: "Run UI test"
       shell: bash
       run: |
-        echo "Post deployment workflow for $DOMAIN"
-        pwd
-        ls -la
+        make test-ui
+
+    - name: Archive UI test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: UI test report
+        path: "tests/test-team/playwright-report"
