@@ -105,6 +105,7 @@ jobs:
     secrets: inherit
   sandbox-set-up:
     name: Sandbox set up
+    needs: [metadata, test-stage]
 
     permissions:
       id-token: write
@@ -121,6 +122,7 @@ jobs:
       terraformAction: apply
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     name: "Acceptance stage"
+    needs: sandbox-set-up
 
     permissions:
       id-token: write

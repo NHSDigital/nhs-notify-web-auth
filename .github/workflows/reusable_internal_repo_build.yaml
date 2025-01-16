@@ -137,37 +137,3 @@ jobs:
             echo "Workflow still running..."
             sleep 20
           done
-
-      - name: Download terraform outputs from triggered workflow deployment
-        if: inputs.terraformAction == 'apply'
-        run: |
-          echo "Fetching artifact url for terraform-outputs-${{ inputs.targetComponent }}..."
-          artifact_url=$(curl -s \
-            -H "Authorization: Bearer ${{ secrets.PR_TRIGGER_PAT }}" \
-            -H "Accept: application/vnd.github+json" \
-            $workflow_run_url/artifacts \
-            | jq -r '.artifacts[] | select(.name=="terraform-output-${{ inputs.targetComponent }}").archive_download_url')
-
-          if [ -z "$artifact_url" ]; then
-            echo "Error: Artifact terraform-outputs-${{ inputs.targetComponent }} not found."
-            exit 1
-          fi
-
-          echo "Downloading artifact from $artifact_url"
-          curl -L \
-            -H "Authorization: Bearer ${{ secrets.PR_TRIGGER_PAT }}" \
-            -H "Accept: application/vnd.github+json" \
-            -o terraform-output-${{ inputs.targetComponent }}.zip \
-            $artifact_url
-
-          echo "Extracting artifact..."
-          unzip terraform-output-${{ inputs.targetComponent }}.zip
-
-          echo "Artifact downloaded and extracted successfully."
-
-      - name: Upload terraform outputs from triggered workflow deployment
-        if: inputs.terraformAction == 'apply'
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-outputs-${{ inputs.targetComponent }}
-          path: ./terraform_output.json
