@@ -26,6 +26,7 @@ data "aws_iam_policy_document" "github_deploy" {
       "distribution:*",
       "secretsmanager:*",
       "sns:*",
+      "wafv2:*",
     ]
     resources = ["*"]
   }

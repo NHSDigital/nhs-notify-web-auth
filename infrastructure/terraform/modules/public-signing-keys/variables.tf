@@ -12,6 +12,17 @@ variable "environment" {
   description = "The name of the tfscaffold environment"
 }
 
+variable "component" {
+  type        = string
+  description = "The name of the tfscaffold component"
+}
+
+variable "module" {
+  type        = string
+  description = "The variable encapsulating the name of this module"
+  default     = "psk"
+}
+
 variable "aws_account_id" {
   type        = string
   description = "The AWS Account ID (numeric)"
@@ -22,11 +33,6 @@ variable "region" {
   description = "The AWS Region"
 }
 
-variable "group" {
-  type        = string
-  description = "The group variables are being inherited from (often synonymous with account short-name)"
-}
-
 ##
 # tfscaffold variables specific to this component
 ##
@@ -35,11 +41,6 @@ variable "group" {
 # a default within its declaration in this file, because the variables
 # purpose is as an identifier unique to this component, rather
 # then to the environment from where all other variables come.
-variable "component" {
-  type        = string
-  description = "The variable encapsulating the name of this component"
-  default     = "sbx"
-}
 
 variable "default_tags" {
   type        = map(string)
@@ -47,12 +48,24 @@ variable "default_tags" {
   default     = {}
 }
 
-##
-# Variables specific to the "sandbox"component
-##
+variable "enable_github_actions_ip_access" {
+  type        = bool
+  description = "Should the Github actions runner IP addresses be permitted access to this distribution. This should not be enabled in production environments"
+  default     = false
+}
 
-variable "parent_acct_environment" {
-  type        = string
-  description = "Name of the environment responsible for the acct resources used, affects things like DNS zone. Useful for named dev environments"
-  default     = "main"
+variable "waf_rate_limit_cdn" {
+  type        = number
+  description = "The rate limit is the maximum number of CDN requests from a single IP address that are allowed in a five-minute period"
+  default     = 20000
+}
+
+variable "s3_access_logs_bucket_id" {
+  type = string
+  description = "S3 bucket ID for Access Logs"
+}
+
+variable "dns_zone_id" {
+  type = string
+  description = "The base DNS zone ID"
 }
