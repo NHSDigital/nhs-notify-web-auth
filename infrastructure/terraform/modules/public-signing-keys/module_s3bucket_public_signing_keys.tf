@@ -1,4 +1,4 @@
-module "s3bucket_public_keys" {
+module "s3bucket_public_signing_keys" {
   source = "git::https://github.com/NHSDigital/nhs-notify-shared-modules.git//infrastructure/modules/s3bucket?ref=v1.0.9"
 
   name = "public-keys"
@@ -10,11 +10,10 @@ module "s3bucket_public_keys" {
   component      = var.component
 
   acl           = "public-read"
-  force_destroy = false
   versioning    = true
 
   bucket_logging_target = {
-    bucket = var.acct.s3_buckets["access_logs"]["id"]
+    bucket = var.s3_access_logs_bucket_id
   }
 
   lifecycle_rules = [
@@ -65,8 +64,8 @@ data "aws_iam_policy_document" "s3bucket_public_keys" {
     ]
 
     resources = [
-      module.s3bucket_public_keys.arn,
-      "${module.s3bucket_public_keys.arn}/*",
+      module.s3bucket_public_signing_keys.arn,
+      "${module.s3bucket_public_signing_keys.arn}/*",
     ]
 
     principals {
@@ -96,7 +95,7 @@ data "aws_iam_policy_document" "s3bucket_public_keys" {
     ]
 
     resources = [
-      module.s3bucket_public_keys.arn,
+      module.s3bucket_public_signing_keys.arn,
     ]
 
     principals {
@@ -116,7 +115,7 @@ data "aws_iam_policy_document" "s3bucket_public_keys" {
     ]
 
     resources = [
-      "${module.s3bucket_public_keys.arn}/*",
+      "${module.s3bucket_public_signing_keys.arn}/*",
     ]
 
     principals {
@@ -129,7 +128,7 @@ data "aws_iam_policy_document" "s3bucket_public_keys" {
 }
 
 resource "aws_s3_bucket_cors_configuration" "public_public_keys" {
-  bucket = module.s3bucket_public_keys.bucket
+  bucket = module.s3bucket_public_signing_keys.bucket
 
   cors_rule {
     allowed_headers = ["Authorization"]
